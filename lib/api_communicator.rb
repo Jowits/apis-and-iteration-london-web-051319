@@ -4,9 +4,10 @@ require 'pry'
 
 def get_character_movies_from_api(character_name)
   #make the web request
-  response_string = RestClient.get("https://www.swapi.co/api/people?search=#{character_name.split(" ").join("+")}")
-  response_hash = JSON.parse(response_string)
+  # response_string = RestClient.get("https://www.swapi.co/api/people?search=#{character_name.split(" ").join("+")}")
+  # response_hash = JSON.parse(response_string)
 
+  response_hash = get_character_from_api(character_name)
   # iterate over the response hash to find the collection of `films` for the given
   #   `character`
   # collect those film API urls, make a web request to each URL to get the info
@@ -25,21 +26,24 @@ def get_character_movies_from_api(character_name)
   end
 end
 
+def get_character_from_api(character_name)
+  JSON.parse(RestClient.get("https://www.swapi.co/api/people?search=#{character_name.split(" ").join("+")}"))
+end
+
 def get_character_details(response_hash)
   response_hash["results"].first
 end
 
 def get_films_for_character(character_details)
-  character_details["films"].sort.map{|film_api| get_film_title_from_api(film_api)}
+  character_details["films"].sort.map{|film_api| get_film_details_from_api(film_api)}
 end
 
-def get_film_title_from_api(film_api)
-  film_response = JSON.parse(RestClient.get(film_api))["title"]
+def get_film_details_from_api(film_api)
+  film_response = JSON.parse(RestClient.get(film_api))
 end
 
 def print_movies(films)
-  # some iteration magic and puts out the movies in a nice list
-  films.each{|film| puts "#{film}"}
+  films.each{|film| puts "#{film["title"]}"}
 end
 
 def show_character_movies(character)
@@ -47,7 +51,7 @@ def show_character_movies(character)
   if films == []
     puts "That character does not exist."
   else
-    puts "Movies for #{character}:"
+    puts "Movies for #{character.upcase}:"
     print_movies(films)
   end
 end
@@ -56,4 +60,3 @@ end
 
 # that `get_character_movies_from_api` method is probably pretty long. Does it do more than one job?
 # can you split it up into helper methods?
-# binding.pry
